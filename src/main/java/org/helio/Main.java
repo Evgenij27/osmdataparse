@@ -7,6 +7,7 @@ import org.helio.parser.OSMStreamParser;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
@@ -21,32 +22,37 @@ public class Main {
     private static final String URL_PATH_FORMAT =
             "https://www.openstreetmap.org/api/0.6/map?bbox=%f,%f,%f,%f";
 
+    private static final String MESSAGE = "You mush provide arguments\nArguments order is: left_top_lat left_top_lon right_bottom_lat rigth_bottom_lon or xml file name with data\n";
 
     public static void main(String[] args) throws Exception {
 
-        if (args.length < 4) {
-            System.out.printf("You mush provide arguments%nArguments order is: left_top_lat left_top_lon right_bottom_lat rigth_bottom_lon");
+        if (args.length < 1) {
+            System.out.print(MESSAGE);
             System.exit(1);
         }
 
-        double leftTopLat     = Double.parseDouble(args[0]);
-        double leftTopLon     = Double.parseDouble(args[1]);
-        double rightBottomLat = Double.parseDouble(args[2]);
-        double rightBottomLon = Double.parseDouble(args[3]);
+        InputStream is = null;
 
-        checkLat(leftTopLat, rightBottomLat);
-        checkLon(leftTopLon, rightBottomLon);
-
-        URI uri = URI.create(String.format(Locale.US, URL_PATH_FORMAT, leftTopLat, leftTopLon, rightBottomLat, rightBottomLon));
-        URL osmServer = uri.toURL();
-
-        URLConnection conn = osmServer.openConnection();
-
-        OSMDocument osmDoc;
-
-        try (InputStream is = conn.getInputStream()) {
-            osmDoc = parseOSMData(is);
+        if (args.length == 4) {
+            double leftTopLat     = Double.parseDouble(args[0]);
+            double leftTopLon     = Double.parseDouble(args[1]);
+            double rightBottomLat = Double.parseDouble(args[2]);
+            double rightBottomLon = Double.parseDouble(args[3]);
+            is = readFrom(leftTopLat, leftTopLon, rightBottomLat, rightBottomLon);
         }
+
+        if (args.length == 1) {
+            is = readFrom(args[0]);
+        }
+
+        if (is == null) {
+            System.out.println("Your arguments are wrong...");
+            System.exit(1);
+        }
+
+
+        OSMDocument osmDoc = parseOSMData(is);
+
 
         System.out.println("##################### AREA OBJECTS ##########################################################");
 
@@ -120,6 +126,23 @@ public class Main {
             System.out.println("Invalid longtitude value");
             System.exit(1);
         }
+    }
+
+    private static InputStream readFrom(double leftTopLat, double leftTopLon,
+                                              double rightBottomLat, double rightBottomLon) throws Exception {
+        checkLat(leftTopLat, rightBottomLat);
+        checkLon(leftTopLon, rightBottomLon);
+
+        URI uri = URI.create(String.format(Locale.US, URL_PATH_FORMAT, leftTopLat, leftTopLon, rightBottomLat, rightBottomLon));
+        URL osmServer = uri.toURL();
+
+        URLConnection conn = osmServer.openConnection();
+
+        return conn.getInputStream();
+    }
+
+    private static InputStream readFrom(String file) throws Exception {
+        return new FileInputStream(file);
     }
 
 }

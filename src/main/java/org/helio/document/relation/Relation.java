@@ -1,13 +1,10 @@
 package org.helio.document.relation;
 
-import net.bytebuddy.matcher.CollectionElementMatcher;
-import org.helio.calculation.GaussAreaCalculations;
 import org.helio.document.node.Node;
 import org.helio.document.way.Way;
 import org.helio.document.way.WayBuilder;
 
 import java.util.*;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
